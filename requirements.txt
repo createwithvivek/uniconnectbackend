@@ -1,3 +1,4 @@
+whitenoise
 gunicorn
 amqp==5.3.1
 asgiref==3.8.1
