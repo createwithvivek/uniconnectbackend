@@ -25,7 +25,7 @@ python manage.py migrate
 
 # Collect static files
 echo "Collecting static files..."
-python manage.py collectstatic --noinput --clear
+python manage.py collectstatic --noinput --phone 
 
 # Create superuser (ensure no input errors with default or environment variable overrides)
 echo "Creating superuser if not already existing..."
@@ -34,7 +34,7 @@ DJANGO_SUPERUSER_USERNAME="${DJANGO_SUPERUSER_USERNAME:-admin}"
 DJANGO_SUPERUSER_PASSWORD="${DJANGO_SUPERUSER_PASSWORD:-adminpassword}"
 echo "super user creating"
 
-python manage.py createsuperuser --noinput \
+python manage.py createsuperuser --noinput --phone \
     --username "$DJANGO_SUPERUSER_USERNAME" \
     --email "$DJANGO_SUPERUSER_EMAIL" || echo "Superuser creation skipped due to existing username."
 
