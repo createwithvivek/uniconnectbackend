@@ -24,9 +24,9 @@ class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        email = request.data.get('email')
+        username = request.data.get('username')
         password = request.data.get('password')
-        user = authenticate(email=email, password=password)
+        user = authenticate(username=username, password=password)
 
         if user:
             refresh = RefreshToken.for_user(user)
