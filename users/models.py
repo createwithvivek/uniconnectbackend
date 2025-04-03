@@ -18,6 +18,31 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+    def follower_count(self):
+        return self.followers.count()
+
+    def following_count(self):
+        return self.following.count()
+
+    def get_followers(self):
+        return [follow.follower for follow in self.followers.all()]
+
+    def get_following(self):
+        return [follow.following for follow in self.following.all()]
+
+
+class Follow(models.Model):
+    follower = models.ForeignKey(CustomUser, related_name='following', on_delete=models.CASCADE)
+    following = models.ForeignKey(CustomUser, related_name='followers', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('follower', 'following')
+
+    def __str__(self):
+        return f"{self.follower.username} follows {self.following.username}"
+
+
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='student_profile')
@@ -55,3 +80,6 @@ class InvestorProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+
