@@ -13,5 +13,5 @@ urlpatterns = [
     path('investor/dashboard/', InvestorDashboardView.as_view(), name='investor_dashboard'),
     path('search/', SearchUserView.as_view(), name='search_user'),
     path('follow/<int:user_id>/', FollowUserView.as_view(), name='follow_user'),
-     path('update-profile/', UpdateProfileView.as_view(), name='update_profile'),
+    path('update-profile/', UpdateProfileView.as_view(), name='update_profile'),
 ]
