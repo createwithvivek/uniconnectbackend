@@ -8,6 +8,7 @@ USER_ROLES = (
 )
 
 class CustomUser(AbstractUser):
+    full_name = models.CharField(max_length=150, blank=True)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, unique=True)
     role = models.CharField(max_length=10, choices=USER_ROLES)
@@ -50,6 +51,9 @@ class StudentProfile(models.Model):
     degree = models.CharField(max_length=100)
     graduation_year = models.PositiveIntegerField()
     skills = models.CharField(max_length=300)
+    city = models.CharField(max_length=100,default='N/A')
+    country = models.CharField(max_length=100,default='N/A')  
+
 
     def __str__(self):
         return self.user.username
@@ -65,6 +69,8 @@ class MentorProfile(models.Model):
     expertise_areas = models.CharField(max_length=200)
     open_for_mentorship = models.BooleanField(default=True)
     availability = models.CharField(max_length=100, blank=True, null=True)
+    city = models.CharField(max_length=100,default='N/A')
+    country = models.CharField(max_length=100,default='N/A') 
 
     def __str__(self):
         return self.user.username
@@ -77,6 +83,8 @@ class InvestorProfile(models.Model):
     min_investment = models.DecimalField(max_digits=15, decimal_places=2)
     max_investment = models.DecimalField(max_digits=15, decimal_places=2)
     stage_of_interest = models.CharField(max_length=100)
+    city = models.CharField(max_length=100,default='N/A')
+    country = models.CharField(max_length=100,default='N/A') 
 
     def __str__(self):
         return self.user.username

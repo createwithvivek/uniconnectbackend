@@ -32,18 +32,36 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'phone', 'password', 'role', 'profile_picture', 'cover_photo')
+        fields = '__all__'
 
     def create(self, validated_data):
         user = CustomUser.objects.create_user(
+            full_name=validated_data['full_name'],
             username=validated_data['username'],
             email=validated_data['email'],
             phone=validated_data['phone'],
             password=validated_data['password'],
             role=validated_data['role'],
-            profile_picture=validated_data.get('profile_picture'),
-            cover_photo=validated_data.get('cover_photo')
+            
         )
+
+        if validated_data['role'] == 'student':
+            univerisity = validated_data.get('university')
+            city = validated_data.get('city')
+            country = validated_data.get('country')
+            StudentProfile.objects.create(user=user,city=city, country=country,university=univerisity)
+
+        elif validated_data['role'] == 'mentor':
+            city = validated_data.get('city')   
+            country = validated_data.get('country')
+            MentorProfile.objects.create(user=user, city=city, country=country)
+           
+        elif validated_data['role'] == 'investor':
+            investment_firm = validated_data.get('investment_firm')
+            city = validated_data.get('city')
+            country = validated_data.get('country')
+            InvestorProfile.objects.create(user=user, city=city, country=country, investment_firm=investment_firm)
+            
         return user
 
 
