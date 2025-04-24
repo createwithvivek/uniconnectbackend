@@ -31,7 +31,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
     role = serializers.ChoiceField(choices=[('student', 'Student'), ('mentor', 'Mentor'), ('investor', 'Investor')])
 
     class Meta:
-        model = CustomUser
+        model = CustomUser,StudentProfile, MentorProfile, InvestorProfile
         fields = '__all__'
 
     def create(self, validated_data):
@@ -46,10 +46,10 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         )
 
         if validated_data['role'] == 'student':
-            univerisity = validated_data.get('university')
+            university = validated_data.get('university')
             city = validated_data.get('city')
             country = validated_data.get('country')
-            StudentProfile.objects.create(user=user,city=city, country=country,university=univerisity)
+            StudentProfile.objects.create(user=user,city=city, country=country,university=university)
 
         elif validated_data['role'] == 'mentor':
             city = validated_data.get('city')   
