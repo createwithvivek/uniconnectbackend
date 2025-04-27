@@ -29,40 +29,39 @@ class InvestorProfileSerializer(serializers.ModelSerializer):
 class RegisterUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     role = serializers.ChoiceField(choices=[('student', 'Student'), ('mentor', 'Mentor'), ('investor', 'Investor')])
+    university = serializers.CharField(required=False)
+    city = serializers.CharField(required=False)
+    country = serializers.CharField(required=False)
+    investment_firm = serializers.CharField(required=False)
 
     class Meta:
-        model = CustomUser,StudentProfile, MentorProfile, InvestorProfile
-        fields = '__all__'
+        model = CustomUser
+        fields = ('id', 'full_name', 'username', 'email', 'phone', 'role', 'password',
+                  'profile_picture', 'cover_photo', 'university', 'city', 'country', 'investment_firm')
 
     def create(self, validated_data):
+        password = validated_data.pop('password')
+        role = validated_data.pop('role')
+        university = validated_data.pop('university', None)
+        city = validated_data.pop('city', None)
+        country = validated_data.pop('country', None)
+        investment_firm = validated_data.pop('investment_firm', None)
+
         user = CustomUser.objects.create_user(
-            full_name=validated_data['full_name'],
-            username=validated_data['username'],
-            email=validated_data['email'],
-            phone=validated_data['phone'],
-            password=validated_data['password'],
-            role=validated_data['role'],
-            
+            **validated_data,
+            password=password,
+            role=role
         )
 
-        if validated_data['role'] == 'student':
-            university = validated_data.get('university')
-            city = validated_data.get('city')
-            country = validated_data.get('country')
-            StudentProfile.objects.create(user=user,city=city, country=country,university=university)
-
-        elif validated_data['role'] == 'mentor':
-            city = validated_data.get('city')   
-            country = validated_data.get('country')
+        if role == 'student':
+            StudentProfile.objects.create(user=user, university=university, city=city, country=country)
+        elif role == 'mentor':
             MentorProfile.objects.create(user=user, city=city, country=country)
-           
-        elif validated_data['role'] == 'investor':
-            investment_firm = validated_data.get('investment_firm')
-            city = validated_data.get('city')
-            country = validated_data.get('country')
+        elif role == 'investor':
             InvestorProfile.objects.create(user=user, city=city, country=country, investment_firm=investment_firm)
-            
+
         return user
+
 
 
 class LoginResponseSerializer(serializers.Serializer):

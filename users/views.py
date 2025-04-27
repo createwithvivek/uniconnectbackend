@@ -14,9 +14,91 @@ from .serializers import (
     LoginResponseSerializer
 )
 
-class RegisterUserView(generics.CreateAPIView):
-    serializer_class = RegisterUserSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, permissions
+from django.db import transaction, IntegrityError
+from django.contrib.auth.hashers import make_password
+
+from .models import CustomUser, StudentProfile, MentorProfile, InvestorProfile
+
+class RegisterUserView(APIView):
     permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        data = request.data
+        try:
+            with transaction.atomic():
+                role = data.get('role')
+                if role not in ['student', 'mentor', 'investor']:
+                    return Response({'error': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
+
+                username = data.get('username')
+                email = data.get('email')
+                phone = data.get('phone')
+                password = data.get('password')
+                full_name = data.get('full_name')
+
+                # Basic validation
+                if not all([username, email, phone, password, role]):
+                    return Response({'error': 'Missing required fields'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Create user
+                user = CustomUser.objects.create(
+                    username=username,
+                    email=email,
+                    phone=phone,
+                    full_name=full_name,
+                    role=role,
+                    password=make_password(password)
+                )
+
+                # Handle profile based on role
+                if role == 'student':
+                    StudentProfile.objects.create(
+                        user=user,
+                        university=data.get('university'),
+                        degree=data.get('degree'),
+                        graduation_year=data.get('graduation_year'),
+                        skills=data.get('skills'),
+                        city=data.get('city', 'N/A'),
+                        country=data.get('country', 'N/A'),
+                    )
+
+                elif role == 'mentor':
+                    MentorProfile.objects.create(
+                        user=user,
+                        work_experience=data.get('work_experience'),
+                        company=data.get('company'),
+                        industry=data.get('industry'),
+                        linkedin=data.get('linkedin'),
+                        portfolio=data.get('portfolio'),
+                        expertise_areas=data.get('expertise_areas'),
+                        open_for_mentorship=data.get('open_for_mentorship', True),
+                        availability=data.get('availability'),
+                        city=data.get('city', 'N/A'),
+                        country=data.get('country', 'N/A'),
+                    )
+
+                elif role == 'investor':
+                    InvestorProfile.objects.create(
+                        user=user,
+                        investment_firm=data.get('investment_firm'),
+                        investment_categories=data.get('investment_categories'),
+                        min_investment=data.get('min_investment'),
+                        max_investment=data.get('max_investment'),
+                        stage_of_interest=data.get('stage_of_interest'),
+                        city=data.get('city', 'N/A'),
+                        country=data.get('country', 'N/A'),
+                    )
+
+                return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
+
+        except IntegrityError as e:
+            return Response({'error': 'User with that email or phone already exists'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class LoginView(APIView):
@@ -33,6 +115,7 @@ class LoginView(APIView):
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
                 'user': UserSerializer(user).data,
+                
                 'followers_count': user.follower_count(),
                 'following_count': user.following_count(),
                 'followers': [UserSerializer(follower).data for follower in user.get_followers()],
