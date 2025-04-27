@@ -196,8 +196,9 @@ class SearchUserView(APIView):
 class FollowUserView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, user_id):
+    def post(self, request):
         user = request.user
+        user_id = request.data.get('user_id')
         try:
             target_user = CustomUser.objects.get(id=user_id)
             if user != target_user:
@@ -228,25 +229,10 @@ class UpdateUserProfileView(APIView):
 
         if 'profile_picture' in request.FILES:
             user.profile_picture = request.FILES['profile_picture']
-        if 'cover_photo' in request.FILES:
-            user.cover_photo = request.FILES['cover_photo']
-
+            return Response({"message": "Profile picture updated"}, status=status.HTTP_200_OK)
+        
         user.save()
 
-        # Updating role-specific profiles
-        if user.role == 'student':
-            profile, created = StudentProfile.objects.get_or_create(user=user)
-            serializer = StudentProfileSerializer(profile, data=data, partial=True)
-        elif user.role == 'mentor':
-            profile, created = MentorProfile.objects.get_or_create(user=user)
-            serializer = MentorProfileSerializer(profile, data=data, partial=True)
-        elif user.role == 'investor':
-            profile, created = InvestorProfile.objects.get_or_create(user=user)
-            serializer = InvestorProfileSerializer(profile, data=data, partial=True)
-        else:
-            return Response({"error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Profile updated successfully", "user": UserSerializer(user).data, "profile": serializer.data}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+       
+        return Response(status=status.HTTP_400_BAD_REQUEST)
