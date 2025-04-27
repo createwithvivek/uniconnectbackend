@@ -1,3 +1,4 @@
+from urllib import request, response
 from rest_framework import generics, permissions
 from .models import Post, Like, Comment
 from .serializers import PostSerializer, LikeSerializer, CommentSerializer
@@ -14,11 +15,18 @@ class PostListView(generics.ListAPIView):
     serializer_class = PostSerializer
 
 class LikeCreateView(generics.CreateAPIView):
-    serializer_class = LikeSerializer
     permission_classes = [permissions.IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        post = request.data.get('post') 
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        if post:
+            post = Post.objects.get(pk=post)
+            like, created = Like.objects.get_or_create(user=request.user, post=post)
+            if created:
+                return response({'status': 'liked'})
+            else:
+                like.delete()
+                return response({'status': 'unliked'})
 
 class CommentCreateView(generics.CreateAPIView):
     serializer_class = CommentSerializer
